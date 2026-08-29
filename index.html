@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S&amp;P Global — FY2025 Performance Dashboard</title>
+<meta name="description" content="An interactive dashboard of S&amp;P Global (NYSE: SPGI) full-year 2025 results: revenue, divisions, margins, capital returns and the 2026 outlook after the Mobility spin-off.">
+<meta name="color-scheme" content="dark">
+
+<!-- Social preview. Replace USERNAME and REPO with your own once the site is live,
+     so a shared link shows a picture instead of a bare URL. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="S&amp;P Global — FY2025 Performance Dashboard">
+<meta property="og:description" content="Revenue, divisions, margins, capital returns and the 2026 outlook, built from the published filings.">
+<meta property="og:image" content="https://USERNAME.github.io/REPO/SPGI_dashboard_1_overview.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --bg:#0A1226; --panel:#141E3A; --panel2:#1B2647; --edge:#26314F;
+    --ink:#F2F4F8; --muted:#8A96B2; --crimson:#E4002B; --amber:#FFB100;
+    --teal:#00C2B2; --indigo:#7B7CF0; --slate:#5C6B8A; --green:#22C47E;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",Carlito,Calibri,system-ui,-apple-system,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1420px;margin:0 auto;padding:28px 22px 60px}
+  header.top{border-bottom:2px solid var(--edge);padding-bottom:18px;margin-bottom:24px;position:relative}
+  header.top::after{content:"";position:absolute;left:0;bottom:-2px;width:120px;height:2px;background:var(--crimson)}
+  .kicker{color:var(--crimson);font-weight:700;letter-spacing:.18em;font-size:.78rem;text-transform:uppercase;margin:0 0 8px}
+  h1{margin:0 0 6px;font-size:2.1rem;line-height:1.15;font-weight:700}
+  .sub{color:var(--muted);margin:0;font-size:.95rem}
+
+  nav{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 26px}
+  nav button{
+    background:var(--panel);color:var(--muted);border:1px solid var(--edge);
+    border-radius:8px;padding:9px 16px;font-size:.93rem;font-family:inherit;cursor:pointer;
+  }
+  nav button:hover{color:var(--ink);border-color:var(--slate)}
+  nav button[aria-selected="true"]{background:var(--crimson);color:#fff;border-color:var(--crimson);font-weight:700}
+  nav button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px}
+  .two{grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.two{grid-template-columns:1fr}}
+
+  .card,.panel{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:16px 18px}
+  .card{border-left:4px solid var(--crimson)}
+  .card .lab{color:var(--muted);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase}
+  .card .val{font-size:1.95rem;font-weight:700;margin:4px 0 2px}
+  .card .dl{font-size:.9rem;font-weight:700;color:var(--green)}
+  .card .ft{font-size:.82rem;color:var(--muted)}
+  .panel h2{margin:0 0 4px;font-size:1rem;letter-spacing:.06em;text-transform:uppercase}
+  .panel p.note{margin:0 0 14px;color:var(--muted);font-size:.9rem}
+  .takeaway{margin:14px 0 0;color:var(--amber);font-weight:700;font-size:.9rem}
+  .plain{margin:12px 0 0;padding:12px 14px;background:var(--panel2);border-radius:8px;
+         border-left:3px solid var(--teal);font-size:.92rem;color:#D8DEEC}
+  .plain b{color:var(--ink)}
+
+  svg{width:100%;height:auto;display:block;overflow:visible}
+  .bar{transition:opacity .15s}
+  .bar:hover{opacity:.75;cursor:pointer}
+  .axis{fill:var(--muted);font-size:12px}
+  .vlab{fill:var(--ink);font-size:12.5px;font-weight:700}
+  .glin{stroke:var(--edge);stroke-width:1}
+
+  .legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font-size:.88rem}
+  .legend span.sw{width:11px;height:11px;border-radius:2px;display:inline-block;margin-right:7px}
+  .legend div{display:flex;align-items:center;color:#D8DEEC}
+  .legend b{color:var(--ink);margin-left:6px}
+
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:6px}
+  th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--edge)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+  tbody tr:hover{background:var(--panel2)}
+  .pos{color:var(--green);font-weight:700}
+
+  .timeline{list-style:none;margin:6px 0 0;padding:0}
+  .timeline li{border-left:3px solid var(--crimson);padding:2px 0 14px 14px;margin-bottom:2px}
+  .timeline li:nth-child(2){border-color:var(--amber)}
+  .timeline li:nth-child(3){border-color:var(--teal)}
+  .timeline li:nth-child(4){border-color:var(--indigo)}
+  .timeline .when{font-weight:700;font-size:.86rem;color:var(--amber)}
+  .timeline li:nth-child(1) .when{color:var(--crimson)}
+  .timeline li:nth-child(3) .when{color:var(--teal)}
+  .timeline li:nth-child(4) .when{color:var(--indigo)}
+
+  .tip{position:fixed;pointer-events:none;background:#050A18;border:1px solid var(--slate);
+       border-radius:6px;padding:7px 10px;font-size:.85rem;opacity:0;transition:opacity .12s;z-index:50}
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--edge);
+         color:var(--muted);font-size:.82rem;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .shot{margin-bottom:20px}
+  .shot img{width:100%;height:auto;display:block;border:1px solid var(--edge);
+            border-radius:12px;background:var(--panel)}
+  .shot figcaption{color:var(--muted);font-size:.88rem;margin-top:8px;
+                   display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  a{color:var(--teal)}
+  a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+  .missing{background:var(--panel2);border-left:3px solid var(--amber);border-radius:8px;
+           padding:12px 14px;font-size:.9rem;color:#D8DEEC}
+  [hidden]{display:none !important}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="kicker">S&amp;P Global · NYSE: SPGI</p>
+  <h1>Fifteen billion dollars of essential intelligence</h1>
+  <p class="sub">Full-year 2025 results, division detail, capital returns and the 2026 outlook — including the Mobility spin-off completed on 1 July 2026.</p>
+</header>
+
+<nav role="tablist" aria-label="Dashboard sections">
+  <button role="tab" id="t1" aria-controls="p1" aria-selected="true">Overview</button>
+  <button role="tab" id="t2" aria-controls="p2" aria-selected="false">Divisions</button>
+  <button role="tab" id="t3" aria-controls="p3" aria-selected="false">Cash &amp; outlook</button>
+  <button role="tab" id="t4" aria-controls="p4" aria-selected="false">Full data</button>
+  <button role="tab" id="t5" aria-controls="p5" aria-selected="false">Static views</button>
+</nav>
+
+<!-- ============================================ OVERVIEW -->
+<section id="p1" role="tabpanel" aria-labelledby="t1">
+  <div class="grid kpis" id="kpi1"></div>
+
+  <div class="grid two">
+    <div class="panel">
+      <h2>Revenue trajectory</h2>
+      <p class="note">USD billions, FY2019 – FY2025</p>
+      <div id="chartRevenue"></div>
+      <p class="takeaway">2.3x revenue in six years · 14.8% compound annual growth since FY2019</p>
+      <p class="plain"><b>In plain English:</b> the jump in 2022 is not organic growth. S&amp;P Global merged with IHS Markit in February 2022, which nearly doubled the size of the company overnight. Everything after that is the combined business growing steadily on its own.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Where the revenue comes from</h2>
+      <p class="note">FY2025 revenue by division, USD millions</p>
+      <div id="chartMix"></div>
+      <div class="legend" id="legendMix"></div>
+      <p class="plain"><b>In plain English:</b> five businesses. Market Intelligence sells data and software subscriptions. Ratings grades the creditworthiness of debt. Energy sells commodity price benchmarks. Indices owns the S&amp;P 500 and earns fees when funds track it. Mobility sold car data — it was spun off in July 2026.</p>
+    </div>
+  </div>
+
+  <div class="grid two" style="margin-top:16px">
+    <div class="panel">
+      <h2>Profitability by division</h2>
+      <p class="note">FY2025 adjusted operating margin, % (FY2024 shown in grey)</p>
+      <div id="chartMargin"></div>
+      <p class="takeaway">Company-wide adjusted operating margin: 50.4% · every division improved</p>
+    </div>
+
+    <div class="panel">
+      <h2>Revenue quality</h2>
+      <p class="note">FY2025 revenue by type, USD millions</p>
+      <div id="chartType"></div>
+      <div class="legend" id="legendType"></div>
+      <p class="plain"><b>Why this matters:</b> 65% of revenue is subscriptions and annual fees — money that arrives whether or not markets are busy. That is what lets the company keep a 50% operating margin through good years and bad.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ DIVISIONS -->
+<section id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+  <div class="grid kpis" id="kpi2"></div>
+
+  <div class="grid two">
+    <div class="panel">
+      <h2>Division revenue, FY2024 vs FY2025</h2>
+      <p class="note">USD millions</p>
+      <div id="chartDiv"></div>
+      <p class="takeaway">Every division grew · Indices grew fastest at +14%</p>
+    </div>
+    <div class="panel">
+      <h2>Where the profit actually sits</h2>
+      <p class="note">FY2025 operating profit by division, USD millions</p>
+      <div id="chartProfit"></div>
+      <p class="takeaway">Ratings is 31% of revenue but 46% of segment operating profit</p>
+    </div>
+  </div>
+
+  <div class="grid two" style="margin-top:16px">
+    <div class="panel">
+      <h2>A genuinely global revenue base</h2>
+      <p class="note">Revenue by region, FY2024 (latest published split), USD millions</p>
+      <div id="chartGeo"></div>
+      <p class="takeaway">39% of revenue is earned outside the United States</p>
+    </div>
+    <div class="panel">
+      <h2>The people behind the data</h2>
+      <p class="note">Headcount by region, FY2024 · 42,350 employees worldwide</p>
+      <div id="chartPeople"></div>
+      <div class="legend" id="legendPeople"></div>
+      <p class="plain"><b>Worth noticing:</b> 58% of the workforce sits in Asia while 61% of revenue is earned in the United States. The delivery model is global; the customer base is concentrated.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ CASH & OUTLOOK -->
+<section id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+  <div class="grid kpis" id="kpi3"></div>
+
+  <div class="grid two">
+    <div class="panel">
+      <h2>Earnings per share</h2>
+      <p class="note">GAAP vs adjusted diluted EPS, USD</p>
+      <div id="chartEps"></div>
+      <p class="plain"><b>Why two numbers:</b> GAAP EPS follows the accounting rulebook and includes one-off items such as the amortisation of intangibles from the IHS Markit merger. Adjusted EPS strips those out to show underlying trading. The gap between the two is closing as merger accounting rolls off. The FY2022 adjusted figure is on a pro forma basis.</p>
+    </div>
+    <div class="panel">
+      <h2>Cash returned to shareholders</h2>
+      <p class="note">Dividends and share repurchases, USD millions</p>
+      <div id="chartReturn"></div>
+      <p class="takeaway">$6.2 billion returned in FY2025 — 113% of adjusted free cash flow</p>
+    </div>
+  </div>
+
+  <div class="grid two" style="margin-top:16px">
+    <div class="panel">
+      <h2>What management has promised for 2026</h2>
+      <p class="note">Full-year adjusted guidance</p>
+      <table id="tblGuide"></table>
+    </div>
+    <div class="panel">
+      <h2>The story to watch</h2>
+      <p class="note">S&amp;P Global is now a four-division company</p>
+      <ul class="timeline" id="tlSpin"></ul>
+      <p class="plain"><b>What a spin-off means:</b> Mobility was not sold for cash. Shareholders were handed shares in a brand-new listed company, Mobility Global. S&amp;P Global keeps four divisions and roughly $1.7 billion of annual revenue leaves with Mobility — which is why the 2026 comparisons are shown "pro forma", meaning as if the split had already happened.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ DATA -->
+<section id="p4" role="tabpanel" aria-labelledby="t4" hidden>
+  <div class="panel">
+    <h2>Consolidated results</h2>
+    <p class="note">USD millions except per-share data</p>
+    <table id="tblCons"></table>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h2>Division detail, FY2025</h2>
+    <p class="note">USD millions</p>
+    <table id="tblDiv"></table>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h2>Revenue by type and by region</h2>
+    <table id="tblType"></table>
+  </div>
+</section>
+
+<!-- ============================================ STATIC VIEWS -->
+<section id="p5" role="tabpanel" aria-labelledby="t5" hidden>
+  <div class="panel">
+    <h2>Poster versions</h2>
+    <p class="note">The same analysis as three fixed 1800 &times; 1050 boards. Right-click any image and choose "Save image as" to post it.</p>
+
+    <figure class="shot">
+      <img src="SPGI_dashboard_1_overview.png" loading="lazy"
+           alt="Overview board. Six headline cards: revenue 15.34 billion dollars up 8 percent; operating profit 6.48 billion up 16 percent; net income 4.47 billion up 16 percent; GAAP diluted earnings per share 14.66 dollars up 19 percent; adjusted operating margin 50.4 percent, up 140 basis points; free cash flow 5.14 billion dollars with 6.2 billion returned to shareholders. Below, a column chart of revenue from 2019 to 2025 rising from 6.70 to 15.34 billion dollars, a donut of the five divisions, a bar chart of adjusted operating margin by division from 34 to 71 percent, and a stacked bar of revenue by contract type.">
+      <figcaption><span>Board 1 — FY2025 scorecard</span>
+        <a href="SPGI_dashboard_1_overview.png" download>Download PNG</a></figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="SPGI_dashboard_2_divisions.png" loading="lazy"
+           alt="Division board. Five cards showing FY2025 revenue: Market Intelligence 4,916 million dollars up 6 percent; Ratings 4,724 million up 8 percent; Energy 2,299 million up 7 percent; Indices 1,850 million up 14 percent; Mobility 1,747 million up 9 percent and spun off in July 2026. Below, a clustered column chart comparing FY2024 and FY2025 revenue, a bar chart of operating profit by division led by Ratings at 3,013 million dollars, a bar chart of revenue by region led by the United States at 8,640 million, and a stacked bar of headcount by region totalling 42,350 employees.">
+      <figcaption><span>Board 2 — Division deep dive</span>
+        <a href="SPGI_dashboard_2_divisions.png" download>Download PNG</a></figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="SPGI_dashboard_3_capital_outlook.png" loading="lazy"
+           alt="Capital and outlook board. Cards for cash from operations 5.65 billion dollars, 6.20 billion returned to shareholders, 53 consecutive years of dividend increases, second quarter 2026 pro forma revenue 3.68 billion up 11 percent, pro forma earnings per share 4.08 dollars up 26 percent, and market capitalisation 128 billion dollars. Below, a column chart of GAAP versus adjusted earnings per share from 2022 to 2025, a stacked column of dividends and buybacks, a table of 2026 guidance, and a four-step timeline of the Mobility spin-off.">
+      <figcaption><span>Board 3 — Cash, shareholders and what happens next</span>
+        <a href="SPGI_dashboard_3_capital_outlook.png" download>Download PNG</a></figcaption>
+    </figure>
+
+    <p class="missing" id="imgWarn" hidden>The three PNG files are not in this folder yet.
+      Upload <code>SPGI_dashboard_1_overview.png</code>, <code>SPGI_dashboard_2_divisions.png</code>
+      and <code>SPGI_dashboard_3_capital_outlook.png</code> next to <code>index.html</code>
+      in your repository and refresh.</p>
+  </div>
+</section>
+
+<footer>
+  <span>Sources: S&amp;P Global 4Q &amp; FY2025 earnings release (10 Feb 2026); FY2025 Form 10-K; Q2 2026 earnings release (28 Jul 2026); 8-K of 6 Jul 2026; S&amp;P Global Investor Fact Book. Market data as at 26 Aug 2026.</span>
+  <span>Built for learning purposes. Not investment advice.</span>
+</footer>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const C={crimson:"#E4002B",amber:"#FFB100",teal:"#00C2B2",indigo:"#7B7CF0",slate:"#5C6B8A",
+         ink:"#F2F4F8",muted:"#8A96B2",edge:"#26314F",grey:"#2C3A5E",pink:"#FF5C7A",paper:"#DCE3F2"};
+
+const DATA={
+ revenue:[[2019,6699],[2020,7442],[2021,8297],[2022,11181],[2023,12497],[2024,14208],[2025,15336]],
+ divisions:[
+  {n:"Market Intelligence",r25:4916,r24:4645,op:991,adj25:34,adj24:33,c:C.indigo},
+  {n:"Ratings",r25:4724,r24:4370,op:3013,adj25:65,adj24:63,c:C.crimson},
+  {n:"Energy",r25:2299,r24:2142,op:943,adj25:48,adj24:47,c:C.amber},
+  {n:"Indices",r25:1850,r24:1628,op:1271,adj25:71,adj24:70,c:C.teal},
+  {n:"Mobility",r25:1747,r24:1609,op:378,adj25:40,adj24:39,c:C.slate}],
+ types:[["Subscription",7865,7346,C.teal],["Transaction / non-subscription",3144,2986,C.crimson],
+        ["Non-transaction",2054,1858,C.pink],["Asset-linked fees",1206,1046,C.amber],
+        ["Recurring variable",623,579,C.indigo],["Sales usage-based royalties",444,393,C.paper]],
+ geo:[["United States",8640,C.crimson],["EMEA",3256,C.amber],["Asia",1491,C.teal],
+      ["Canada",612,C.slate],["Latin America",209,C.slate]],
+ people:[["Asia",24450,C.crimson],["US & Canada",11200,C.indigo],["EMEA",5700,C.teal],["Latin America",1000,C.amber]],
+ eps:[[2022,10.20,11.19],[2023,8.23,12.60],[2024,12.35,15.70],[2025,14.66,17.83]],
+ capital:[[2024,1134,3301],[2025,1170,5001]],
+ guide:[["Organic constant-currency revenue growth","6.0% – 8.0%"],
+        ["Reported revenue growth","6.6% – 8.6%"],
+        ["Adjusted diluted EPS","$19.40 – $19.65"],
+        ["Implied adjusted EPS growth","9% – 10%"],
+        ["Operating margin expansion","10 – 35 bps"],
+        ["Net interest expense","$395 – $405 million"],
+        ["Effective tax rate","22.0% – 23.0%"],
+        ["Capital returned to shareholders","85%+ of adjusted free cash flow"]],
+ spin:[["1 July 2026","Mobility spun off as an independent listed company, Mobility Global (NYSE: MBGL)."],
+       ["6 July 2026","Recast 2025 and Q1 2026 accounts published, excluding Mobility."],
+       ["28 July 2026","Q2 2026: pro forma revenue +11% to $3.68B, pro forma EPS +26% to $4.08."],
+       ["Ahead","Four divisions remain: Market Intelligence, Ratings, Energy and Indices."]],
+ consolidated:[
+  ["Revenue","15,336","14,208","+8%"],["Total expenses","9,159","8,730","+5%"],
+  ["Operating profit","6,478","5,580","+16%"],["Operating margin","42.2%","39.3%","+3 pts"],
+  ["Adjusted operating margin","50.4%","49.0%","+140 bps"],
+  ["Net income attributable to SPGI","4,471","3,852","+16%"],
+  ["Adjusted net income","5,441","4,898","+11%"],
+  ["GAAP diluted EPS","$14.66","$12.35","+19%"],["Adjusted diluted EPS","$17.83","$15.70","+14%"],
+  ["Cash from operations","5,651","5,689","–1%"],["Free cash flow","5,135","5,278","–3%"],
+  ["Dividends paid","1,170","1,134","+3%"],["Share repurchases","5,001","3,301","+52%"],
+  ["Total assets","61,200","60,221","+2%"],["Long-term debt","12,370","11,394","+9%"],
+  ["Diluted shares outstanding (m)","305.1","311.9","–2%"]]
+};
+
+const kpiSets={
+ kpi1:[["Revenue","$15.34B","+8.0% y/y","FY2024: $14.21B",C.crimson],
+       ["Operating profit","$6.48B","+16% y/y","Margin 42.2%",C.amber],
+       ["Net income","$4.47B","+16% y/y","FY2024: $3.85B",C.teal],
+       ["GAAP diluted EPS","$14.66","+19% y/y","Adjusted $17.83",C.indigo],
+       ["Adj. operating margin","50.4%","+140 bps","GAAP 42.2%",C.crimson],
+       ["Free cash flow","$5.14B","$6.2B returned","113% of adj. FCF",C.teal]],
+ kpi2:[["Market Intelligence","$4,916m","+6% y/y","34% adj. margin",C.indigo],
+       ["Ratings","$4,724m","+8% y/y","65% adj. margin",C.crimson],
+       ["Energy","$2,299m","+7% y/y","48% adj. margin",C.amber],
+       ["Indices","$1,850m","+14% y/y","71% adj. margin",C.teal],
+       ["Mobility","$1,747m","+9% y/y","Spun off July 2026",C.slate]],
+ kpi3:[["Cash from operations","$5.65B","FY2025","Capex only $195m",C.teal],
+       ["Returned to shareholders","$6.20B","113% of adj. FCF","$5.0B buybacks",C.crimson],
+       ["Consecutive dividend rises","53 years","Quarterly $0.97","$3.88 annualised",C.amber],
+       ["Q2 2026 pro forma revenue","$3.68B","+11% y/y","Excluding Mobility",C.indigo],
+       ["Q2 2026 pro forma EPS","$4.08","+26% y/y","GAAP $4.12",C.teal],
+       ["Market capitalisation","$128B","SPGI $436","26 Aug 2026",C.crimson]]
+};
+
+const tip=document.getElementById("tip");
+function hook(el,text){
+  const show=e=>{tip.textContent=text;tip.style.opacity=1;
+    const x=(e.touches?e.touches[0].clientX:e.clientX), y=(e.touches?e.touches[0].clientY:e.clientY);
+    tip.style.left=Math.min(x+14,window.innerWidth-tip.offsetWidth-10)+"px";
+    tip.style.top=(y-42)+"px";};
+  el.addEventListener("mousemove",show);
+  el.addEventListener("mouseenter",show);
+  el.addEventListener("mouseleave",()=>tip.style.opacity=0);
+}
+const fmt=n=>n.toLocaleString("en-US");
+const el=(t,a={})=>{const e=document.createElementNS("http://www.w3.org/2000/svg",t);
+  for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+function kpis(id){
+  const box=document.getElementById(id);
+  kpiSets[id].forEach(([lab,val,dl,ft,col])=>{
+    const d=document.createElement("div");
+    d.className="card"; d.style.borderLeftColor=col;
+    d.innerHTML=`<div class="lab">${lab}</div><div class="val">${val}</div>
+                 <div class="dl">${dl}</div><div class="ft">${ft}</div>`;
+    box.appendChild(d);
+  });
+}
+
+/* ---------- vertical bars ---------- */
+function vbars(host,rows,{max,fmtV,label}){
+  const W=640,H=300,L=44,B=44,T=26;
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":label});
+  const iw=W-L-14, ih=H-B-T, n=rows.length, bw=iw/n*0.55;
+  for(let i=0;i<=3;i++){
+    const y=T+ih-ih*i/3;
+    s.appendChild(el("line",{x1:L,x2:W-8,y1:y,y2:y,class:"glin"}));
+    const t=el("text",{x:L-9,y:y+4,"text-anchor":"end",class:"axis"});
+    t.textContent=fmtV(max*i/3); s.appendChild(t);
+  }
+  rows.forEach((r,i)=>{
+    const cx=L+iw*(i+0.5)/n, h=ih*r.v/max, y=T+ih-h;
+    const b=el("rect",{x:cx-bw/2,y:y,width:bw,height:Math.max(h,1),fill:r.c,rx:3,class:"bar"});
+    hook(b,`${r.k}: ${r.t}`); s.appendChild(b);
+    const v=el("text",{x:cx,y:y-8,"text-anchor":"middle",class:"vlab"});
+    v.textContent=r.t; s.appendChild(v);
+    const k=el("text",{x:cx,y:H-B+20,"text-anchor":"middle",class:"axis"});
+    k.textContent=r.k; s.appendChild(k);
+  });
+  host.appendChild(s);
+}
+
+/* ---------- grouped vertical bars ---------- */
+function gbars(host,groups,max,label,fmtV){
+  const W=640,H=300,L=48,B=48,T=30;
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":label});
+  const iw=W-L-14, ih=H-B-T, n=groups.length, gw=iw/n, bw=gw*0.28;
+  for(let i=0;i<=3;i++){
+    const y=T+ih-ih*i/3;
+    s.appendChild(el("line",{x1:L,x2:W-8,y1:y,y2:y,class:"glin"}));
+    const t=el("text",{x:L-9,y:y+4,"text-anchor":"end",class:"axis"});
+    t.textContent=fmtV(max*i/3); s.appendChild(t);
+  }
+  groups.forEach((g,i)=>{
+    const cx=L+gw*(i+0.5);
+    [[g.a,C.grey,-1,g.la],[g.b,g.c,1,g.lb]].forEach(([v,col,dir,lt])=>{
+      const h=ih*v/max, y=T+ih-h;
+      const b=el("rect",{x:cx+dir*bw*0.55-(dir<0?bw:0),y:y,width:bw,height:Math.max(h,1),fill:col,rx:3,class:"bar"});
+      hook(b,lt); s.appendChild(b);
+    });
+    if(g.tag){
+      const t=el("text",{x:cx+bw*0.55+bw/2,y:T+ih-ih*g.b/max-9,"text-anchor":"middle",class:"vlab"});
+      t.textContent=g.tag; s.appendChild(t);
+    }
+    g.k.split("\n").forEach((line,j)=>{
+      const t=el("text",{x:cx,y:H-B+20+j*15,"text-anchor":"middle",class:"axis"});
+      t.textContent=line; s.appendChild(t);
+    });
+  });
+  host.appendChild(s);
+}
+
+/* ---------- horizontal bars ---------- */
+function hbars(host,rows,{max,label,pad=180,ghost=false}){
+  const W=640, rh=34, H=rows.length*rh+22;
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":label});
+  const iw=W-pad-116;
+  rows.forEach((r,i)=>{
+    const y=i*rh+8;
+    const t=el("text",{x:pad-10,y:y+18,"text-anchor":"end",class:"axis",fill:C.ink});
+    t.textContent=r.k; s.appendChild(t);
+    const w=iw*r.v/max;
+    const b=el("rect",{x:pad,y:y+5,width:Math.max(w,2),height:20,fill:r.c,rx:3,class:"bar"});
+    hook(b,`${r.k}: ${r.t}`); s.appendChild(b);
+    if(ghost&&r.p!=null){
+      s.appendChild(el("line",{x1:pad+iw*r.p/max,x2:pad+iw*r.p/max,y1:y+3,y2:y+27,
+        stroke:C.ink,"stroke-width":2,opacity:.85}));
+    }
+    const v=el("text",{x:pad+w+9,y:y+20,class:"vlab"});
+    v.textContent=r.t; s.appendChild(v);
+    if(r.sub){const sv=el("text",{x:pad+w+9+r.t.length*8.4,y:y+20,class:"axis"});
+      sv.textContent=r.sub; s.appendChild(sv);}
+  });
+  host.appendChild(s);
+}
+
+/* ---------- stacked bar ---------- */
+function stack(host,items,label,minPct=6){
+  const W=640,H=52,total=items.reduce((a,b)=>a+b.v,0);
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":label});
+  let x=0;
+  items.forEach(it=>{
+    const w=W*it.v/total;
+    const r=el("rect",{x:x,y:8,width:w-2,height:30,fill:it.c,rx:3,class:"bar"});
+    hook(r,`${it.k}: ${it.t}`); s.appendChild(r);
+    if(w/W*100>=minPct){
+      const t=el("text",{x:x+w/2,y:28,"text-anchor":"middle","font-size":13,"font-weight":700,
+        fill:[C.teal,C.amber,C.paper].includes(it.c)?"#0A1226":C.ink});
+      t.textContent=Math.round(it.v/total*100)+"%"; s.appendChild(t);
+    }
+    x+=w;
+  });
+  host.appendChild(s);
+}
+
+/* ---------- donut ---------- */
+function donut(host,items,centre,sub,label){
+  const S=260,R=100,r=64,cx=S/2,cy=S/2;
+  const s=el("svg",{viewBox:`0 0 ${S} ${S}`,role:"img","aria-label":label});
+  const total=items.reduce((a,b)=>a+b.v,0);
+  let ang=-Math.PI/2;
+  items.forEach(it=>{
+    const a2=ang+2*Math.PI*it.v/total, big=(a2-ang)>Math.PI?1:0;
+    const p=[`M ${cx+R*Math.cos(ang)} ${cy+R*Math.sin(ang)}`,
+             `A ${R} ${R} 0 ${big} 1 ${cx+R*Math.cos(a2)} ${cy+R*Math.sin(a2)}`,
+             `L ${cx+r*Math.cos(a2)} ${cy+r*Math.sin(a2)}`,
+             `A ${r} ${r} 0 ${big} 0 ${cx+r*Math.cos(ang)} ${cy+r*Math.sin(ang)}`,"Z"].join(" ");
+    const path=el("path",{d:p,fill:it.c,stroke:"#141E3A","stroke-width":2.5,class:"bar"});
+    hook(path,`${it.k}: ${it.t}`); s.appendChild(path);
+    ang=a2;
+  });
+  const t1=el("text",{x:cx,y:cy+2,"text-anchor":"middle","font-size":26,"font-weight":700,fill:C.ink});
+  t1.textContent=centre; s.appendChild(t1);
+  const t2=el("text",{x:cx,y:cy+24,"text-anchor":"middle","font-size":13,fill:C.muted});
+  t2.textContent=sub; s.appendChild(t2);
+  host.appendChild(s);
+}
+
+function legend(host,items){
+  items.forEach(it=>{
+    const d=document.createElement("div");
+    d.innerHTML=`<span class="sw" style="background:${it.c}"></span>${it.k}<b>${it.t}</b>`;
+    host.appendChild(d);
+  });
+}
+function table(el_,head,rows,posCol){
+  el_.innerHTML="<thead><tr>"+head.map(h=>`<th>${h}</th>`).join("")+"</tr></thead><tbody>"+
+    rows.map(r=>"<tr>"+r.map((c,i)=>`<td${i===posCol?' class="pos"':""}>${c}</td>`).join("")+"</tr>").join("")+
+    "</tbody>";
+}
+
+/* =============================== render */
+["kpi1","kpi2","kpi3"].forEach(kpis);
+
+vbars(document.getElementById("chartRevenue"),
+  DATA.revenue.map(([y,v])=>({k:y,v:v/1000,t:(v/1000).toFixed(2),
+    c:y<2022?C.slate:C.crimson})),
+  {max:18,fmtV:v=>v.toFixed(0),label:"S&P Global revenue by year, 2019 to 2025, in USD billions"});
+
+const totRev=DATA.divisions.reduce((a,d)=>a+d.r25,0);
+donut(document.getElementById("chartMix"),
+  DATA.divisions.map(d=>({k:d.n,v:d.r25,t:`$${fmt(d.r25)}m (${(d.r25/totRev*100).toFixed(1)}%)`,c:d.c})),
+  "$15.3B","FY2025","FY2025 revenue split by division");
+legend(document.getElementById("legendMix"),
+  DATA.divisions.map(d=>({k:d.n,c:d.c,t:`$${fmt(d.r25)}m · ${(d.r25/totRev*100).toFixed(1)}%`})));
+
+hbars(document.getElementById("chartMargin"),
+  [...DATA.divisions].sort((a,b)=>b.adj25-a.adj25).map(d=>({
+    k:d.n,v:d.adj25,p:d.adj24,c:d.c,t:d.adj25+"%",sub:` vs ${d.adj24}% in FY2024`})),
+  {max:100,label:"Adjusted operating margin by division, FY2025",pad:170,ghost:true});
+
+stack(document.getElementById("chartType"),
+  DATA.types.map(([k,v,p,c])=>({k,v,c,t:`$${fmt(v)}m, +${Math.round((v/p-1)*100)}% y/y`})),
+  "FY2025 revenue by type");
+legend(document.getElementById("legendType"),
+  DATA.types.map(([k,v,p,c])=>({k,c,t:`$${fmt(v)}m · +${Math.round((v/p-1)*100)}%`})));
+
+gbars(document.getElementById("chartDiv"),
+  DATA.divisions.map(d=>({k:d.n.replace(" ","\n"),a:d.r24,b:d.r25,c:d.c,
+    tag:`+${Math.round((d.r25/d.r24-1)*100)}%`,
+    la:`${d.n} FY2024: $${fmt(d.r24)}m`,lb:`${d.n} FY2025: $${fmt(d.r25)}m`})),
+  6000,"Division revenue FY2024 versus FY2025",v=>fmt(Math.round(v)));
+
+const totOp=DATA.divisions.reduce((a,d)=>a+d.op,0);
+hbars(document.getElementById("chartProfit"),
+  [...DATA.divisions].sort((a,b)=>b.op-a.op).map(d=>({
+    k:d.n,v:d.op,c:d.c,t:`$${fmt(d.op)}m`,sub:`  ${Math.round(d.op/totOp*100)}% of segment profit`})),
+  {max:3400,label:"Operating profit by division, FY2025",pad:170});
+
+const totGeo=DATA.geo.reduce((a,g)=>a+g[1],0);
+hbars(document.getElementById("chartGeo"),
+  DATA.geo.map(([k,v,c])=>({k,v,c,t:`$${fmt(v)}m`,sub:`  ${Math.round(v/totGeo*100)}%`})),
+  {max:9800,label:"Revenue by region, FY2024",pad:130});
+
+const totP=DATA.people.reduce((a,p)=>a+p[1],0);
+stack(document.getElementById("chartPeople"),
+  DATA.people.map(([k,v,c])=>({k,v,c,t:`${fmt(v)} employees`})),
+  "Headcount by region, FY2024");
+legend(document.getElementById("legendPeople"),
+  DATA.people.map(([k,v,c])=>({k,c,t:`${fmt(v)} · ${Math.round(v/totP*100)}%`})));
+
+gbars(document.getElementById("chartEps"),
+  DATA.eps.map(([y,g,a])=>({k:String(y),a:g,b:a,c:C.crimson,tag:a.toFixed(2),
+    la:`${y} GAAP diluted EPS: $${g.toFixed(2)}`,lb:`${y} adjusted diluted EPS: $${a.toFixed(2)}`})),
+  21,"GAAP versus adjusted diluted earnings per share",v=>"$"+v.toFixed(0));
+
+(function(){
+  const host=document.getElementById("chartReturn");
+  const W=640,H=300,L=56,B=44,T=32,max=7600;
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Dividends and buybacks by year"});
+  const iw=W-L-14, ih=H-B-T, n=DATA.capital.length, bw=iw/n*0.34;
+  for(let i=0;i<=3;i++){
+    const y=T+ih-ih*i/3;
+    s.appendChild(el("line",{x1:L,x2:W-8,y1:y,y2:y,class:"glin"}));
+    const t=el("text",{x:L-9,y:y+4,"text-anchor":"end",class:"axis"});
+    t.textContent=fmt(Math.round(max*i/3)); s.appendChild(t);
+  }
+  DATA.capital.forEach(([yr,d,b],i)=>{
+    const cx=L+iw*(i+0.5)/n;
+    const hd=ih*d/max, hb=ih*b/max;
+    const rd=el("rect",{x:cx-bw/2,y:T+ih-hd,width:bw,height:hd,fill:C.teal,rx:3,class:"bar"});
+    hook(rd,`${yr} dividends paid: $${fmt(d)}m`); s.appendChild(rd);
+    const rb=el("rect",{x:cx-bw/2,y:T+ih-hd-hb,width:bw,height:hb,fill:C.crimson,rx:3,class:"bar"});
+    hook(rb,`${yr} share repurchases: $${fmt(b)}m`); s.appendChild(rb);
+    const t1=el("text",{x:cx,y:T+ih-hd-hb-10,"text-anchor":"middle","font-size":14,
+      "font-weight":700,fill:C.amber});
+    t1.textContent=`$${((d+b)/1000).toFixed(2)}B total`; s.appendChild(t1);
+    const t2=el("text",{x:cx,y:H-B+20,"text-anchor":"middle",class:"axis"});
+    t2.textContent=yr; s.appendChild(t2);
+  });
+  host.appendChild(s);
+  const lg=document.createElement("div"); lg.className="legend";
+  host.appendChild(lg);
+  legend(lg,[{k:"Dividends paid",c:C.teal,t:""},{k:"Share repurchases",c:C.crimson,t:""}]);
+})();
+
+table(document.getElementById("tblGuide"),["Guidance measure","2026 range"],DATA.guide);
+document.getElementById("tlSpin").innerHTML=DATA.spin.map(([w,t])=>
+  `<li><div class="when">${w}</div><div>${t}</div></li>`).join("");
+table(document.getElementById("tblCons"),["Measure","FY2025","FY2024","Change"],DATA.consolidated,3);
+table(document.getElementById("tblDiv"),
+  ["Division","Revenue FY2025","Revenue FY2024","Growth","Operating profit","Adj. margin"],
+  DATA.divisions.map(d=>[d.n,"$"+fmt(d.r25)+"m","$"+fmt(d.r24)+"m",
+    "+"+Math.round((d.r25/d.r24-1)*100)+"%","$"+fmt(d.op)+"m",d.adj25+"%"]),3);
+table(document.getElementById("tblType"),["Revenue line","FY2025","FY2024","Growth"],
+  DATA.types.map(([k,v,p])=>[k,"$"+fmt(v)+"m","$"+fmt(p)+"m","+"+Math.round((v/p-1)*100)+"%"])
+  .concat(DATA.geo.map(([k,v])=>["Region: "+k,"$"+fmt(v)+"m (FY2024)","",""])),3);
+
+/* flag missing poster images so the page never looks broken */
+document.querySelectorAll(".shot img").forEach(img=>{
+  img.addEventListener("error",()=>{
+    img.closest(".shot").hidden=true;
+    document.getElementById("imgWarn").hidden=false;
+  });
+});
+
+/* tabs */
+const tabs=[...document.querySelectorAll('[role="tab"]')];
+tabs.forEach(t=>t.addEventListener("click",()=>{
+  tabs.forEach(o=>{
+    const sel=o===t;
+    o.setAttribute("aria-selected",sel);
+    document.getElementById(o.getAttribute("aria-controls")).hidden=!sel;
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}));
+</script>
+</body>
+</html>
