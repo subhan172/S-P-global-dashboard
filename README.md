@@ -3,7 +3,7 @@
 
 An interactive dashboard built from S&P Global's published filings: revenue, division results, margins, capital returns and the 2026 outlook after the Mobility spin-off.
 
-**Live site:** `https://USERNAME.github.io/REPO/`
+**Live site:** `https://subhan172.github.io/S-P-global-dashboard/`
 
 ## What's in this repository
 
